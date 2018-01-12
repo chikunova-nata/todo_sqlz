@@ -21,16 +21,6 @@ module.exports = {
         type: Sequelize.DATE,
       },
     })
-    .addColumn(
-      'Todos',
-      'order',
-      {
-        type: Sequelize.INTEGER,
-        allowNull: false,
-        defaultValue: 1
-      }
-    ),
   down: (queryInterface /* , Sequelize */) => queryInterface
   .dropTable('Todos')
-  .removeColumn('order'),
 };

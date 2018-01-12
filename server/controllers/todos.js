@@ -1,27 +1,6 @@
 const Todo = require('../models').Todo;
 const TodoItem = require('../models').TodoItem;
 
-class Todo {
-  constructor({models}) {
-    if(!models) throw new Error('Models not provided!');
-    this.models = models;
-  }
-
-  async create(req, res) {
-    try {
-      const todo = await Todo.create({
-        title: req.body.title,
-      });
-
-      if (!todo) return Promise.reject(new errors.NotFound());
-      return Promise.resolve(todo);
-    } catch(error) {
-      console.error(error);
-    }
-  }
-
-}
-
 module.exports = {
   create(req, res) {
     return Todo
