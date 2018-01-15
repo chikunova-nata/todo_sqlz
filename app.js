@@ -1,6 +1,7 @@
 const express = require('express');
 const logger = require('morgan');
 const bodyParser = require('body-parser');
+const config = require('./config/config.json');
 
 // Set up the express app
 const app = express();
@@ -8,8 +9,10 @@ const app = express();
 // Log requests to the console.
 app.use(logger('dev'));
 
-// Parse incoming requests data 
+const jwt = require('jsonwebtoken');
+app.set('superSecret', config.secret);
 
+// Parse incoming requests data
 // parse application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({ extended: false }));
 // parse application/json
