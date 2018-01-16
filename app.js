@@ -1,16 +1,12 @@
 const express = require('express');
 const logger = require('morgan');
 const bodyParser = require('body-parser');
-const config = require('./config/config.json');
 
 // Set up the express app
 const app = express();
 
 // Log requests to the console.
 app.use(logger('dev'));
-
-const jwt = require('jsonwebtoken');
-app.set('superSecret', config.secret);
 
 // Parse incoming requests data
 // parse application/x-www-form-urlencoded
@@ -22,8 +18,8 @@ app.use(function(req, res, next) {
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   next();
 });
-app.use((request, res, next) => {
- // console.log('request ', request)
+app.use((req, res, next) => {
+  //console.log('request ', req.body)
   next();
 });
 
