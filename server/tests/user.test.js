@@ -3,44 +3,88 @@ const API_BASE = '127.0.0.1:8000';
 const userModel = require('../models').User;
 const faker = require('faker');
 const app = require('../../app');
+const sinon = require('sinon');
 const chai = require('chai');
 const chaiHttp = require('chai-http');
 const should = chai.should();
+const expect = chai.expect;
 chai.use(chaiHttp);
+const jwt = require('jsonwebtoken');
 
-describe('Account', function() {
-
+describe('App tests', () => {
+    let server;
     const fakeUser = {
         fullName: faker.name.findName(),
         email: faker.internet.email(),
         password: faker.internet.password()
-    }
-    const fakeEmail = 'nata5@gmail.com';
-    const fakeToken = 'bGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjoibmF0YTVAZ21haWwuY29tIiwiaWF0IjoxNTE2MTM3NTYwLCJleHAiOjE1MTYyMjM5NjB9.zQtBKPtiQV7wBeWXPRXq_ZmouTB-rM1-GBwx7p6jenQ';
+    };
+    const sandbox = sinon.sandbox.create();
 
-    it('should retrieve the token', () => {
-        chai.request(app)
-        .get('/auth/login')
-        .query({email: fakeEmail})
-        .end((err, res) => {
-            res.should.have.status(200);
-            res.body.should.be.a('object');
-            res.body.should.have.property('token').not.be('undefined');
+    before(done => {
+        server = app.listen('8000');
+        server.once('listening', () => done());
+
+        sandbox.stub(jwt, 'verify').callsArgWith(2, null, {});
+      });
+
+    describe('Account', () => {
+        it.only('Returns a 200 response if token is valid', () => {
+            return chai.request(app)
+                .get('/api/authenticate')
+                .set('x-access-token', 'anything') 
+                .send(fakeUser)
+                .then(response => {
+                    expect(response).to.have.status(200);
+                })
+        });
+
+        it('Creates a user document in our DB', () => {
+            return chai.request(app)
+                .post('/auth/register')
+                .send(fakeUser)
+                .then(() => {
+                    return userModel.findOne({ where: {email: fakeUser.email} });
+                })
+                .then(response => {        
+                    const user = response.dataValues;
+                    expect(user.fullName).to.be.equal(fakeUser.fullName);
+                    expect(user.email).to.be.equal(fakeUser.email);
+                })
+        });
+
+        describe('Create User', () => {
+            it('Returns a 201 response', () => {
+                return chai.request(app)
+                    .post('/auth/register')
+                    .send({
+                        fullName: faker.name.findName(),
+                        email: faker.internet.email(),
+                        password: faker.internet.password()
+                    })
+                    .then(response => {
+                        expect(response).to.have.status(201);
+                    })
+            });
         });
     });
-    
-    it('should save new user account', () => {
-        chai.request(app)
-        .post('/auth/register')
-        .send(fakeUser)
-        .end((err, res) => {
-            res.status.should.equal(201);
-            res.type.should.equal('application/json');
-            res.body.should.have.property('token').not.be('undefined');
-            }
-        )
+
+    describe('Test API Route', () => {
+        it('Returns a 200 response', (done) => {
+            chai.request(app)
+                .get('/api')
+                .end((error, response) => {
+                    if (error) done(error);
+                    // Now let's check our response
+                    expect(response).to.have.status(200);
+                    expect(response.body).to.be.deep.equal({
+                        message: 'Welcome to the Todos API!'
+                    });
+                    done();
+                });
+        });
     });
-    
+
+    /*
     it('should correctly update an existing account by the given id', () => {
     });
 
@@ -83,7 +127,10 @@ describe('Account', function() {
             err.body.should.have.property('message').eq('Failed to authenticate token.');
         });
     });
+    */
 
-    
-
+    after(done => {
+        server.close(done);
+        sandbox.restore();
+    });
 });
