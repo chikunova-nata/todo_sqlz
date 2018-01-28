@@ -1,0 +1,4 @@
+clip-video
+1) async findClipByGuid(guid)  - Почему в этом файле, а не в Clip service?
+2) downloadFileToEFS - объявлена, но не используется?
+
